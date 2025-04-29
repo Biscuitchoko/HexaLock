@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-worker: python bot.py
-=======
-worker: python bot.py
->>>>>>> 0b404fa (initial commit)
