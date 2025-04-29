@@ -1,0 +1,186 @@
+import discord
+from discord.ext import commands
+import requests
+import os
+import time
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
+
+# Variables d'environnement
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+KASPERSKY_MAP_URL = os.getenv('KASPERSKY_MAP_URL')
+ADMIN_ROLE_ID = int(os.getenv('ADMIN_ROLE_ID'))  # Assure-toi que l'ID du rôle admin est dans ton .env
+
+# Définir les intents pour le bot
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True  # Pour pouvoir kick un membre
+
+# Initialiser le bot
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+# Liste des domaines suspects
+suspect_domains = [
+    "bit.ly", "tinyurl.com", "goo.gl", "ow.ly", "t.co", "is.gd", "buff.ly", "location.cyou",
+    "cutt.ly", "rebrand.ly", "shorte.st", "adf.ly", "linktr.ee", "lnkd.in",
+    "smarturl.it", "snip.ly", "tiny.cc", "v.gd", "tr.im", "cli.re",
+    "shorturl.at", "t.ly", "s.id", "qr.ae", "bit.do", "soo.gd", "mcaf.ee",
+    "po.st", "viralurl.com", "yourls.org", "x.co", "j.mp", "u.to", "qr.net",
+    "ity.im", "q.gs", "adcrun.ch", "linkbucks.com", "moourl.com", "short.cm",
+    "short.io", "t2m.io", "shortly.cc", "shrtfly.com", "clk.im", "shrinkearn.com",
+    "ouo.io", "linkvertise.com", "bc.vc", "exe.io", "za.gl", "sh.st", "short.am",
+    "adfoc.us", "linkshrink.net", "shrinkme.io", "cutwin.com", "shortzon.com",
+    "short2win.com", "short.pe", "shorten.sh", "shortlink.st", "shorturl.link",
+    "shorturl.gg", "shorturl.io", "shorturl.xyz", "shorturl.click", "shorturl.site",
+    "shorturl.today", "shorturl.fun", "shorturl.biz", "shorturl.top", "shorturl.club",
+    "shorturl.info", "shorturl.pro", "shorturl.store", "shorturl.tech", "shorturl.co",
+    "shorturl.us", "shorturl.uk", "shorturl.in", "shorturl.ca", "shorturl.au",
+    "shorturl.eu", "shorturl.de", "shorturl.fr", "shorturl.es", "shorturl.it",
+    "shorturl.nl", "shorturl.be", "shorturl.ch", "shorturl.se", "shorturl.no",
+    "shorturl.dk", "shorturl.fi", "shorturl.pl", "shorturl.cz", "shorturl.sk",
+    "shorturl.hu", "shorturl.ro", "shorturl.bg", "shorturl.gr", "shorturl.tr",
+    "shorturl.ru", "shorturl.ua", "shorturl.by", "shorturl.kz", "shorturl.cn",
+    "shorturl.jp", "shorturl.kr", "shorturl.sg", "shorturl.my", "shorturl.id",
+    "shorturl.ph", "shorturl.vn", "shorturl.th", "shorturl.hk", "shorturl.tw",
+    "shorturl.pk", "shorturl.bd", "shorturl.lk", "shorturl.np", "shorturl.af",
+    "shorturl.ir", "shorturl.sa", "shorturl.ae", "shorturl.qa", "shorturl.om",
+    "shorturl.kw", "shorturl.bh", "shorturl.jo", "shorturl.lb", "shorturl.sy",
+    "shorturl.iq", "shorturl.eg", "shorturl.ma", "shorturl.dz", "shorturl.tn",
+    "shorturl.ly", "shorturl.sd", "shorturl.ss", "shorturl.et", "shorturl.ke",
+    "shorturl.ug", "shorturl.tz", "shorturl.rw", "shorturl.bi", "shorturl.mw",
+    "shorturl.zm", "shorturl.zw", "shorturl.na", "shorturl.bw", "shorturl.mz",
+    "shorturl.ao", "shorturl.cd", "shorturl.cg", "shorturl.ga", "shorturl.cm",
+    "shorturl.ng", "shorturl.sn", "shorturl.ml", "shorturl.ci", "shorturl.gh",
+    "shorturl.tg", "shorturl.bf", "ouo.press", "urle.io", "gplinks.in", "droplink.co", "boost.ink",
+    "bc.vc", "cpmlink.net", "fc.lc", "shortest.link", "psu.sh",
+    "link-target.net", "clk.sh", "viralgyan.in", "earnably.com",
+    "shrinke.me", "cuturl.in", "tmearn.com", "tmearn.me",
+    "shortlinks.co", "tech2link.com", "liiinks.co", "sub2unlock.com",
+    "easyurl.net", "git.io", "rb.gy", "kutt.it", "bl.ink", "0x0.st",
+    "anonym.to", "anonfiles.com", "file.io", "send.express", "wetransfer.com",
+    "mega.nz", "transfer.sh", "zippyshare.com", "upload.ee", "krakenfiles.com",
+    "bayfiles.com", "dl.dropboxusercontent.com", "cdn.discordapp.com", "catbox.moe",
+    "pixeldrain.com", "1fichier.com", "filebin.net", "terabox.com", "send.cm",
+    "ufile.io", "sendspace.com", "turbobit.net", "nitroflare.com", "rapidgator.net"
+]
+
+# Anti-Spam avancé
+user_message_log = {}
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    user_id = message.author.id
+    current_time = time.time()
+    content = message.content.lower()
+
+    # Détection de domaines suspects
+    found_domains = [domain for domain in suspect_domains if domain in content]
+    if found_domains:
+        admin_mention = f"<@&{ADMIN_ROLE_ID}>"
+        await message.delete()
+
+        alert_msg = (
+            f"{admin_mention} 🚨 **Lien suspect détecté !**\n"
+            f"Utilisateur: {message.author.mention}\n"
+            f"Domaines suspects détectés : `{', '.join(found_domains)}`\n"
+            "⚠️ Le message a été supprimé automatiquement."
+        )
+        await message.channel.send(alert_msg)
+
+    # Anti-spam avancé
+    if user_id not in user_message_log:
+        user_message_log[user_id] = []
+
+    user_message_log[user_id].append(current_time)
+
+    # Nettoyer les anciens messages (garder que ceux dans les 10 dernières secondes)
+    user_message_log[user_id] = [timestamp for timestamp in user_message_log[user_id] if current_time - timestamp < 10]
+
+    if len(user_message_log[user_id]) > 10:
+        admin_mention = f"<@&{ADMIN_ROLE_ID}>"
+        await message.channel.send(f"{admin_mention} 🚨 {message.author.mention} a été expulsé pour spam massif.")
+        await message.guild.kick(message.author, reason="Spam détecté")
+        user_message_log[user_id] = []
+
+    await bot.process_commands(message)
+
+# Commande pour envoyer la carte Kaspersky
+@bot.command()
+async def kasperskymap(ctx):
+    if KASPERSKY_MAP_URL:
+        await ctx.send(f"Voici la carte Kaspersky : {KASPERSKY_MAP_URL}")
+    else:
+        await ctx.send("Désolé, la carte Kaspersky n'est pas disponible pour le moment.")
+
+# Commande pour vérifier un lien
+@bot.command()
+async def verifylink(ctx, link: str):
+    """Vérifie si un lien est valide"""
+    try:
+        response = requests.get(link)
+        response.raise_for_status()
+        await ctx.send(f"Le lien {link} est valide.")
+    except requests.exceptions.RequestException as e:
+        await ctx.send(f"Le lien {link} est invalide : {e}")
+
+# Commande d'aide avec un embed
+@bot.command()
+async def aide(ctx):
+    embed = discord.Embed(
+        title="Aide du Bot HexaLock",
+        description="Voici les commandes disponibles :",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="!kasperskymap", value="Affiche la carte mondiale des cybermenaces de Kaspersky.", inline=False)
+    embed.add_field(name="!verifylink [lien]", value="Vérifie si un lien est valide.", inline=False)
+    embed.add_field(name="!lockchannel", value="Verrouille le salon (admin uniquement).", inline=False)
+    embed.add_field(name="!unlockchannel", value="Déverrouille le salon (admin uniquement).", inline=False)
+    embed.add_field(name="!clearchannel", value="Supprime tous les messages du salon (admin uniquement).", inline=False)
+    embed.add_field(name="Détection automatique", value="Détecte les liens suspects et agit immédiatement.", inline=False)
+    embed.set_footer(text="Bot HexaLock | Protection avancée")
+    await ctx.send(embed=embed)
+
+# Commande pour verrouiller le salon (admin uniquement)
+@bot.command()
+@commands.has_role(ADMIN_ROLE_ID)
+async def lockchannel(ctx):
+    """Verrouille le salon pour empêcher tout le monde d'écrire sauf les admins"""
+    overwrites = ctx.channel.overwrites_for(ctx.guild.default_role)
+    overwrites.send_messages = False
+    await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrites)
+    
+    # Ajouter l'emoji et le tiret au nom du salon
+    await ctx.channel.edit(name=f"🔒 - {ctx.channel.name}")
+    
+    await ctx.send("🔒 Ce salon est maintenant verrouillé pour les utilisateurs.")
+
+# Commande pour déverrouiller le salon (admin uniquement)
+@bot.command()
+@commands.has_role(ADMIN_ROLE_ID)
+async def unlockchannel(ctx):
+    """Déverrouille le salon pour permettre à tout le monde d'écrire"""
+    overwrites = ctx.channel.overwrites_for(ctx.guild.default_role)
+    overwrites.send_messages = True
+    await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrites)
+    
+    # Retirer l'emoji et le tiret du nom du salon
+    if ctx.channel.name.startswith("🔒 - "):
+        await ctx.channel.edit(name=ctx.channel.name[4:])
+
+    await ctx.send("🔓 Ce salon est maintenant déverrouillé pour les utilisateurs.")
+
+# Commande pour clear les messages d'un salon (admin uniquement)
+@bot.command()
+@commands.has_role(ADMIN_ROLE_ID)
+async def clearchannel(ctx, amount: int = 100):
+    """Supprime les messages du salon"""
+    await ctx.channel.purge(limit=amount)
+    await ctx.send(f"🧹 Salon nettoyé ({amount} messages supprimés).", delete_after=5)
+
+# Lancer le bot
+bot.run(DISCORD_TOKEN)
