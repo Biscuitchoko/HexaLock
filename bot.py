@@ -213,4 +213,8 @@ async def clearchannel(ctx, amount: int = 100):
     await ctx.channel.purge(limit=amount)
     await ctx.send(f"🧹 {amount} messages supprimés.", delete_after=5)
 
+@bot.command()
+async def info(ctx):
+    await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** `!aide`.")
+
 bot.run(DISCORD_TOKEN)
