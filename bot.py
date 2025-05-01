@@ -161,10 +161,14 @@ async def changeprefix(ctx, new_prefix: str):
 
 @bot.command()
 async def adminrole(ctx, role_id: int):
+    if ctx.author.id != ctx.guild.owner_id:
+        return await ctx.send("❌ Seul le propriétaire du serveur peut définir le rôle admin.")
+    
     config = load_config()
     config["admin_role_id"] = role_id
     save_config(config)
     await ctx.send(f"✅ Rôle admin défini sur : <@&{role_id}>")
+
 
 # Commandes admin
 @bot.command()
@@ -209,7 +213,7 @@ async def on_guild_join(guild):
         try:
             await guild.owner.send(
                 "👋 Merci de m'avoir ajouté sur votre serveur !\n\n"
-                "🔧 Vous pouvez me configurer avec la commande !réglages\n"
+                "🔧 Vous pouvez me configurer avec la commande !réglages - n'oubliez pas de reconfiguet le role admin à chaque M.A.J !\n"
                 "📖 Et découvrir toutes mes commandes avec !aide\n\n"
                 "🤖 – HexaLock, votre assistant de sécurité Discord"
             )
