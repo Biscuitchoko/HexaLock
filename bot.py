@@ -218,5 +218,20 @@ async def clearchannel(ctx, amount: int = 100):
 async def info(ctx):
     await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** `!aide` **ou** `!réglages`.")
 
+
+@bot.event
+async def on_guild_join(guild):
+    if guild.owner:
+        try:
+            await guild.owner.send(
+                "👋 Merci de m'avoir ajouté sur votre serveur !\n\n"
+                "🔧 Vous pouvez me configurer avec la commande `!réglages`\n"
+                "📖 Et découvrir toutes mes commandes avec `!aide`\n\n"
+                "🤖 – HexaLock, votre assistant de sécurité Discord"
+            )
+        except discord.Forbidden:
+            print(f"Impossible d'envoyer un message à {guild.owner}. Permission refusée.")
+
+
 bot.run(DISCORD_TOKEN)
 
