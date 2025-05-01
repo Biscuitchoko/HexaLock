@@ -100,9 +100,16 @@ async def on_message(message):
     if found_domains:
         await message.delete()
 
-        # Message simple sans embed
         admin_mention = f"<@&{admin_role_id}>" if admin_role_id else "🚨"
-        await message.channel.send(f"{admin_mention} **Lien suspect détecté** !\n**Utilisateur :** {message.author.mention}\nDomaines détectés : `{', '.join(found_domains)}`\n⚠️ *Le message a été supprimé automatiquement.*")
+        await message.channel.send(
+            content=(
+                f"{admin_mention} **Lien suspect détecté** !\n"
+                f"**Utilisateur :** {message.author.mention}\n"
+                f"**Domaines détectés :** `{', '.join(found_domains)}`\n"
+                f"⚠️ *Le message a été supprimé automatiquement.*"
+            ),
+            allowed_mentions=discord.AllowedMentions(roles=True)
+        )
         return
 
     # Anti-spam simple
