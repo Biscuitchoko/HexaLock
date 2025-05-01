@@ -36,7 +36,7 @@ def get_prefix(bot, message):
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 
 # Liste des domaines suspects
-suspect_domains = [# Raccourcisseurs classiques
+suspect_domains = [
     "bit.ly", "tinyurl.com", "goo.gl", "ow.ly", "t.co", "is.gd", "buff.ly", "cutt.ly", "rebrand.ly",
     "shorte.st", "adf.ly", "linktr.ee", "lnkd.in", "smarturl.it", "snip.ly", "tiny.cc", "v.gd", "tr.im",
     "cli.re", "shorturl.at", "t.ly", "s.id", "qr.ae", "bit.do", "soo.gd", "mcaf.ee", "po.st", "x.co", "j.mp",
@@ -76,8 +76,8 @@ suspect_domains = [# Raccourcisseurs classiques
     "shorturl.rw", "shorturl.bi", "shorturl.mw", "shorturl.zm", "shorturl.zw", "shorturl.na",
     "shorturl.bw", "shorturl.mz", "shorturl.ao", "shorturl.cd", "shorturl.cg", "shorturl.ga",
     "shorturl.cm", "shorturl.ng", "shorturl.sn", "shorturl.ml", "shorturl.ci", "shorturl.gh",
-    "shorturl.tg", "shorturl.bf"
-    ]  # (même liste que tu as, je l’ai gardée identique — à raccourcir ici pour lisibilité)
+    "shorturl.tg", "shorturl.bf", "pornhub.com"
+]
 
 user_message_count = {}
 
@@ -99,14 +99,14 @@ async def on_message(message):
     found_domains = [domain for domain in suspect_domains if domain in content]
     if found_domains:
         await message.delete()
-        if admin_role_id:
-            admin_mention = f"<@&{admin_role_id}>"
-            await message.channel.send(
-                f"{admin_mention} 🚨 **Lien suspect détecté !**\n"
-                f"Utilisateur: {message.author.mention}\n"
-                f"Domaines détectés : ```{', '.join(found_domains)}```\n"
-                "⚠️ Le message a été supprimé automatiquement."
-            )
+
+        admin_mention = f"<@&{admin_role_id}>" if admin_role_id else "🚨"
+        embed = discord.Embed(title="Lien suspect détecté !", color=discord.Color.red())
+        embed.add_field(name="Utilisateur", value=message.author.mention, inline=False)
+        embed.add_field(name="Domaines détectés", value=", ".join(found_domains), inline=False)
+        embed.set_footer(text="⚠️ Le message a été supprimé automatiquement.")
+
+        await message.channel.send(content=admin_mention, embed=embed)
         return
 
     # Anti-spam simple
@@ -155,6 +155,7 @@ async def aide(ctx):
     embed.add_field(name=f"{prefix}unlockchannel", value="Déverrouille le salon", inline=False)
     embed.add_field(name=f"{prefix}clearchannel", value="Nettoie le salon", inline=False)
     embed.add_field(name=f"{prefix}réglages", value="Voir les options de configuration", inline=False)
+    embed.add_field(name=f"{prefix}info", value="Brève description du bot", inline=False)
     embed.set_footer(text="Bot HexaLock | Protection avancée")
     await ctx.send(embed=embed)
 
@@ -218,3 +219,4 @@ async def info(ctx):
     await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** `!aide` **ou** `!réglages`.")
 
 bot.run(DISCORD_TOKEN)
+
