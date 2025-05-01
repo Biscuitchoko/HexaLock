@@ -102,7 +102,7 @@ async def on_message(message):
 
         # Message simple sans embed
         admin_mention = f"<@&{admin_role_id}>" if admin_role_id else "🚨"
-        await message.channel.send(f"{admin_mention} Lien suspect détecté !\nUtilisateur : {message.author.mention}\nDomaines détectés : {', '.join(found_domains)}\n⚠️ Le message a été supprimé automatiquement.")
+        await message.channel.send(f"{admin_mention} **Lien suspect détecté** !\n**Utilisateur :** {message.author.mention}\nDomaines détectés : `{', '.join(found_domains)}`\n⚠️ *Le message a été supprimé automatiquement.*")
         return
 
     # Anti-spam simple
