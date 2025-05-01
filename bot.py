@@ -147,7 +147,7 @@ async def aide(ctx):
 async def réglages(ctx):
     config = load_config()
     prefix = config.get("prefix", "!")
-    embed = discord.Embed(title="Réglages", color=discord.Color.green())
+    embed = discord.Embed(title="Réglages", color=discord.Color.black())
     embed.add_field(name=f"{prefix}changeprefix <nouveau>", value="Change le préfixe du bot", inline=False)
     embed.add_field(name=f"{prefix}adminrole <id_du_role>", value="Définit le rôle admin", inline=False)
     await ctx.send(embed=embed)
@@ -204,7 +204,7 @@ async def clearchannel(ctx, amount: int = 100):
 
 @bot.command()
 async def info(ctx):
-    await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** !aide **ou** !réglages.")
+    await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** `!aide` **ou** `!réglages.`")
 
 
 @bot.event
@@ -213,8 +213,8 @@ async def on_guild_join(guild):
         try:
             await guild.owner.send(
                 "👋 Merci de m'avoir ajouté sur votre serveur !\n\n"
-                "🔧 Vous pouvez me configurer avec la commande !réglages - n'oubliez pas de reconfiguet le role admin à chaque M.A.J !\n"
-                "📖 Et découvrir toutes mes commandes avec !aide\n\n"
+                "🔧 Vous pouvez me configurer avec la commande `!réglages` 🔑 - n'oubliez pas de reconfiguet le role admin à chaque M.A.J !\n"
+                "📖 Et découvrir toutes mes commandes avec `!aide`\n\n"
                 "🤖 – HexaLock, votre assistant de sécurité Discord"
             )
         except discord.Forbidden:
