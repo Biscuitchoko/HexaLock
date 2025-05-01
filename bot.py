@@ -100,7 +100,7 @@ async def on_message(message):
     if found_domains:
         await message.delete()
 
-        admin_mention = f"<@&{admin_role_id}>" if admin_role_id else "🚨"
+        admin_mention = f"<@&{admin_role_id}>"
         await message.channel.send(
             content=(
                 f"{admin_mention} **Lien suspect détecté** !\n"
@@ -112,16 +112,6 @@ async def on_message(message):
         )
         return
 
-    # Anti-spam simple
-    user_id = message.author.id
-    user_message_count[user_id] = user_message_count.get(user_id, 0) + 1
-
-    if user_message_count[user_id] > 10 and admin_role_id:
-        await message.channel.send(f"<@&{admin_role_id}> ⚠️ {message.author.mention} a été expulsé pour spam.")
-        await message.guild.kick(message.author, reason="Spam détecté")
-        user_message_count[user_id] = 0
-
-    await bot.process_commands(message)
 
 @bot.before_invoke
 async def delete_command_message(ctx):
