@@ -97,17 +97,13 @@ async def on_message(message):
     # Détection des domaines suspects
     content = message.content.lower()
     found_domains = [domain for domain in suspect_domains if domain in content]
-    if found_domains:
-        await message.delete()
+   if found_domains:
+    await message.delete()
 
-        admin_mention = f"<@&{admin_role_id}>" if admin_role_id else "🚨"
-        embed = discord.Embed(title="Lien suspect détecté !", color=discord.Color.red())
-        embed.add_field(name="Utilisateur", value=message.author.mention, inline=False)
-        embed.add_field(name="Domaines détectés", value=", ".join(found_domains), inline=False)
-        embed.set_footer(text="⚠️ Le message a été supprimé automatiquement.")
-
-        await message.channel.send(content=admin_mention, embed=embed)
-        return
+    # Message simple sans embed
+    admin_mention = f"<@&{admin_role_id}>" if admin_role_id else "🚨"
+    await message.channel.send(f"{admin_mention} Lien suspect détecté !\nUtilisateur : {message.author.mention}\nDomaines détectés : {', '.join(found_domains)}\n⚠️ Le message a été supprimé automatiquement.")
+    return
 
     # Anti-spam simple
     user_id = message.author.id
