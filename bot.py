@@ -4,6 +4,10 @@ import requests
 import os
 from discord.ext import commands
 from dotenv import load_dotenv
+from web import keep_alive
+
+# Lance le faux serveur web
+keep_alive()
 
 # Charger les variables d'environnement
 load_dotenv()
