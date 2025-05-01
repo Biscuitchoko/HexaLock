@@ -5,6 +5,8 @@ import os
 from discord.ext import commands
 from dotenv import load_dotenv
 from web import keep_alive
+from collections import defaultdict
+import asyncio
 
 # Lance le faux serveur web
 keep_alive()
@@ -49,7 +51,8 @@ suspect_domains = [
     "linkmink.com", "shortify.link", "fakelink.com", "direct.to", "tru.ly", "sub.link", "shortlink.me"
 ]
 
-user_message_count = {}
+user_message_count = defaultdict(int)
+user_last_message_time = {}
 
 @bot.event
 async def on_ready():
@@ -75,14 +78,26 @@ async def on_message(message):
         await message.channel.send(f"{admin_mention} **Lien suspect détecté** !\n**Utilisateur :** {message.author.mention}\nDomaines détectés : {', '.join(found_domains)}\n⚠️ *Le message a été supprimé automatiquement.*")
         return
 
-    # Anti-spam simple
+    # Anti-spam simple avec temporisation
     user_id = message.author.id
-    user_message_count[user_id] = user_message_count.get(user_id, 0) + 1
+    current_time = asyncio.get_event_loop().time()
 
-    if user_message_count[user_id] > 10 and admin_role_id:
+    # Limite d'intervalle de messages pour éviter le spam
+    if user_id in user_last_message_time:
+        time_diff = current_time - user_last_message_time[user_id]
+        if time_diff < 2:  # Si un utilisateur envoie trop de messages dans un court laps de temps
+            user_message_count[user_id] += 1
+        else:
+            user_message_count[user_id] = 1
+    else:
+        user_message_count[user_id] = 1
+
+    user_last_message_time[user_id] = current_time
+
+    if user_message_count[user_id] > 10:  # Si l'utilisateur envoie trop de messages
         await message.channel.send(f"<@&{admin_role_id}> ⚠️ {message.author.mention} a été expulsé pour spam.")
         await message.guild.kick(message.author, reason="Spam détecté")
-        user_message_count[user_id] = 0
+        user_message_count[user_id] = 0  # Réinitialiser le compteur
 
     await bot.process_commands(message)
 
