@@ -28,9 +28,12 @@ def save_config(config):
         json.dump(config, f, indent=4)
 
 config = load_config()
+# Ajout des intents nécessaires
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.guilds = True  # Pour gérer les salons
+intents.guild_messages = True  # Pour gérer les messages dans les salons
 
 def get_prefix(bot, message):
     return load_config().get("prefix", "!")
