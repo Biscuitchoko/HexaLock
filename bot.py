@@ -215,6 +215,6 @@ async def clearchannel(ctx, amount: int = 100):
 
 @bot.command()
 async def info(ctx):
-    await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** `!aide`.")
+    await ctx.send("🤖 Je suis HexaLock, un bot conçu pour vous assister sur Discord et sécuriser ce serveur. **Pour commencer, tapez** `!aide` **ou** `!réglages`.")
 
 bot.run(DISCORD_TOKEN)
