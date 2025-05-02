@@ -152,7 +152,9 @@ async def on_message(message):
 async def delete_command_message(ctx):
     try:
         await ctx.message.delete()
-    except discord.Forbidden:
+    except (discord.Forbidden, discord.NotFound):
+        # Forbidden : le bot n’a pas les permissions pour supprimer
+        # NotFound : le message n'existe plus
         pass
 
 # Commandes
