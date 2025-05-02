@@ -15,6 +15,16 @@ from PIL import Image, ImageDraw, ImageFont
 # Lance le faux serveur web
 keep_alive()
 
+async def keep_alive_loop():
+    while True:
+        try:
+            requests.get("http://localhost:8080/keepalive")  # ping local à ton serveur Flask
+        except:
+            pass
+        await asyncio.sleep(300)  # toutes les 5 minutes
+
+bot.loop.create_task(keep_alive_loop())
+
 # Charger les variables d'environnement
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
