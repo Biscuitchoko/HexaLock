@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from web import keep_alive
 from collections import defaultdict
 import asyncio
+import random
+import string
+import io
+from PIL import Image, ImageDraw, ImageFont
 
 # Lance le faux serveur web
 keep_alive()
@@ -37,6 +41,29 @@ intents.guild_messages = True  # Pour gérer les messages dans les salons
 
 def get_prefix(bot, message):
     return load_config().get("prefix", "!")
+
+
+def generate_captcha_text(length=6):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+def create_captcha_image(text):
+    width, height = 200, 80
+    image = Image.new('RGB', (width, height), color=(255, 255, 255))
+    font = ImageFont.truetype("arial.ttf", 40)
+    draw = ImageDraw.Draw(image)
+    draw.text((20, 20), text, font=font, fill=(0, 0, 0))
+
+    # Brouillage basique
+    for _ in range(10):
+        x1, y1 = random.randint(0, width), random.randint(0, height)
+        x2, y2 = random.randint(0, width), random.randint(0, height)
+        draw.line(((x1, y1), (x2, y2)), fill=(0, 0, 0), width=1)
+
+    output = io.BytesIO()
+    image.save(output, format='PNG')
+    output.seek(0)
+    return output
+
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 
@@ -219,6 +246,67 @@ async def on_guild_join(guild):
             )
         except discord.Forbidden:
             print(f"Impossible d'envoyer un message à {guild.owner}. Permission refusée.")
+
+
+@bot.command()
+async def captcha(ctx, channel: discord.TextChannel, role: discord.Role):
+    config = load_config()
+    config["captcha_channel_id"] = channel.id
+    config["captcha_role_id"] = role.id
+    save_config(config)
+    await ctx.send(f"✅ Captcha activé dans {channel.mention}, rôle attribué : {role.mention}")
+
+
+@bot.event
+async def on_member_join(member):
+    config = load_config()
+    channel_id = config.get("captcha_channel_id")
+    role_id = config.get("captcha_role_id")
+    
+    if not channel_id or not role_id:
+        return
+
+    channel = member.guild.get_channel(channel_id)
+    role = member.guild.get_role(role_id)
+
+    if not channel or not role:
+        return
+
+    attempts = 3
+    captcha_text = generate_captcha_text()
+    image = create_captcha_image(captcha_text)
+
+    embed = discord.Embed(title="Vérification Captcha",
+                          description="Merci de confirmer que tu n'es pas un robot.\nTape **exactement** ce que tu vois dans l'image ci-dessous.",
+                          color=discord.Color.orange())
+    file = discord.File(image, filename="captcha.png")
+    embed.set_image(url="attachment://captcha.png")
+
+    msg = await channel.send(f"{member.mention}", embed=embed, file=file)
+
+    def check(m):
+        return m.author == member and m.channel == channel
+
+    while attempts > 0:
+        try:
+            response = await bot.wait_for("message", check=check, timeout=60)
+        except:
+            break  # Timeout
+
+        if response.content.strip().upper() == captcha_text:
+            await member.add_roles(role, reason="Captcha réussi")
+            await channel.send(f"✅ Bienvenue {member.mention}, tu as passé le captcha !", delete_after=10)
+            await msg.delete()
+            await response.delete()
+            return
+        else:
+            attempts -= 1
+            await channel.send(f"❌ Mauvais captcha. Tentatives restantes : {attempts}", delete_after=5)
+            await response.delete()
+
+    await channel.send(f"❌ {member.mention} a échoué le captcha. Expulsion...")
+    await member.kick(reason="Échec captcha")
+    await msg.delete()
 
 
 bot.run(DISCORD_TOKEN)
