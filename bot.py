@@ -176,6 +176,7 @@ async def réglages(ctx):
     prefix = config.get("prefix", "!")
     embed = discord.Embed(title="Réglages", color=discord.Color.black())
     embed.add_field(name=f"{prefix}changeprefix <nouveau>", value="Change le préfixe du bot", inline=False)
+    embed.add_field(name=f"{prefix}captcha <nouveau>", value="Met en place le système de captcha", inline=False)
     embed.add_field(name=f"{prefix}adminrole <id_du_role>", value="Définit le rôle admin", inline=False)
     await ctx.send(embed=embed)
 
