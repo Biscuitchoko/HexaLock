@@ -1,6 +1,6 @@
 {
     "prefix": "!",
-    "admin_role_id": null
+    "admin_role_id": null,
     "captcha_channel_id": null,
     "captcha_role_id": null
 }
