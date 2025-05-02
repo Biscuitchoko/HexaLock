@@ -49,7 +49,11 @@ def generate_captcha_text(length=6):
 def create_captcha_image(text):
     width, height = 200, 80
     image = Image.new('RGB', (width, height), color=(255, 255, 255))
-    font = ImageFont.truetype("arial.ttf", 40)
+    try:
+        font = ImageFont.truetype("fonts/arial.ttf", 40)
+    except:
+        font = ImageFont.load_default()
+
     draw = ImageDraw.Draw(image)
     draw.text((20, 20), text, font=font, fill=(0, 0, 0))
 
