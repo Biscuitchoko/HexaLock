@@ -15,14 +15,19 @@ from PIL import Image, ImageDraw, ImageFont
 # Lance le faux serveur web
 keep_alive()
 
-async def keep_alive_loop():
-    while True:
-        try:
-            requests.get("http://localhost:8080/keepalive")  # ping local à ton serveur Flask
-        except:
-            pass
-        await asyncio.sleep(300)  # toutes les 5 minutes
+bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 
+async def keep_alive_loop():
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        try:
+            async with aiohttp.ClientSession() as session:
+                await session.get("http://localhost:8080/keepalive")
+        except Exception as e:
+            print(f"Erreur keepalive: {e}")
+        await asyncio.sleep(300)  # 5 minutes
+
+# Lance la tâche APRÈS avoir défini le bot
 bot.loop.create_task(keep_alive_loop())
 
 # Charger les variables d'environnement
@@ -77,9 +82,6 @@ def create_captcha_image(text):
     image.save(output, format='PNG')
     output.seek(0)
     return output
-
-
-bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 
 # Liste des domaines suspects (tous ceux que tu m'as envoyés)
 suspect_domains = [
