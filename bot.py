@@ -191,7 +191,7 @@ async def aide(ctx):
 async def réglages(ctx):
     config = load_config()
     prefix = config.get("prefix", "!")
-    embed = discord.Embed(title="Réglages", color=discord.Color.black())
+    embed = discord.Embed(title="Réglages", color=discord.Color.dark_grey())
     embed.add_field(name=f"{prefix}changeprefix <nouveau>", value="Change le préfixe du bot", inline=False)
     embed.add_field(name=f"{prefix}captcha <channel> <rôle>", value="Met en place le système de captcha", inline=False)
     embed.add_field(name=f"{prefix}adminrole <id_du_role>", value="Définit le rôle admin", inline=False)
